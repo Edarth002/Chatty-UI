@@ -99,7 +99,7 @@ export default function LoginPage() {
         <p className="text-sm text-white/50 mt-6 text-center">
           Don’t have an account?{" "}
           <a
-            href="/auth/signup"
+            href="/auth/register"
             className="text-white hover:underline transition"
           >
             Create one
