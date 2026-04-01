@@ -11,6 +11,11 @@ export default function SignupPage() {
 
   const [loading, setLoading] = useState(false);
 
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -29,9 +34,28 @@ export default function SignupPage() {
       });
 
       const data = await res.json();
-      console.log(data);
+
+      if (!res.ok) {
+        let message = "Something went wrong";
+
+        if (data?.error?.message) {
+          try {
+            const parsed = JSON.parse(data.error.message);
+            message = parsed[0]?.message || message;
+          } catch {
+            message = data.error.message;
+          }
+        }
+
+        setFeedback({ type: "error", message });
+      } else {
+        setFeedback({ type: "success", message: "Account created successfully" });
+      }
+
+      setTimeout(() => setFeedback(null), 3000);
     } catch (err) {
-      console.error(err);
+      setFeedback({ type: "error", message: "Network error" });
+      setTimeout(() => setFeedback(null), 3000);
     } finally {
       setLoading(false);
     }
@@ -39,14 +63,11 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-4 font-sans">
-      {/* Background glow */}
       <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
         <div className="w-[400px] h-[400px] bg-white/5 blur-3xl rounded-full" />
       </div>
 
-      {/* Card */}
       <div className="relative w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 p-10 rounded-3xl shadow-2xl">
-        {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-semibold tracking-tight">
             Create account
@@ -56,9 +77,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Username */}
           <div>
             <label className="text-sm text-white/70 mb-1 block">
               Username
@@ -72,7 +91,6 @@ export default function SignupPage() {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="text-sm text-white/70 mb-1 block">
               Email
@@ -87,7 +105,6 @@ export default function SignupPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="text-sm text-white/70 mb-1 block">
               Password
@@ -102,18 +119,28 @@ export default function SignupPage() {
             />
           </div>
 
-          {/* Button */}
+          {feedback && (
+            <div
+              className={`text-sm px-4 py-2 rounded-lg text-center ${
+                feedback.type === "error"
+                  ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                  : "bg-green-500/10 text-green-400 border border-green-500/20"
+              }`}
+            >
+              {feedback.message}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-white text-black py-3 rounded-xl font-medium
-            hover:bg-white/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            hover:bg-white/90 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
-        {/* Footer */}
         <p className="text-sm text-white/50 mt-6 text-center">
           Already have an account?{" "}
           <a
