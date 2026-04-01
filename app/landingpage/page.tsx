@@ -66,12 +66,6 @@ const TESTIMONIALS = [
   { name: 'Mei L.', role: 'Singapore', quote: 'The encryption gives me peace of mind. I know my personal conversations are truly private.' },
 ];
 
-const BUSINESS_FEATURES = [
-  { n: '01', title: 'Reach customers directly', desc: 'Customers already have Chatty. Meet them where they are with personalised messages and offers.' },
-  { n: '02', title: 'Build a product catalogue', desc: 'Showcase your products and services inside Chatty so customers can browse and buy without leaving.' },
-  { n: '03', title: 'Automate with intelligence', desc: 'Set up quick replies, greeting messages, and away messages to be responsive 24/7.' },
-  { n: '04', title: 'Verified business badge', desc: 'Get a green badge that shows customers your business is legitimate and verified by Meta.' },
-];
 
 const STATS = [
   { value: '2B+', label: 'Monthly active users' },
@@ -599,7 +593,7 @@ export default function ChattyLanding() {
                   </div>
                   {d}
                 </div>
-              ))}
+              ))} 
               <a href="#" className="btn-white" style={{ marginTop: 32, display: 'inline-flex' }}>Get the app</a>
             </div>
             {/* Right — devices illustration */}
@@ -645,7 +639,7 @@ export default function ChattyLanding() {
                 <div>
                   <div style={{ width: 172, height: 110, borderRadius: 10, background: '#111', border: '1px solid rgba(255,255,255,.12)', overflow: 'hidden' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-                      {[['#ef4444','60%'],['#f59e0b','60%'],['#22c55e','60%']].map(([c, o], i) => <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c, opacity: Number(o)/100 }} />)}
+                      {[['#ef4444','60%'],['#f59e0b','60%'],['#22c55e','60%']].map(([c, o], i) => <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
                     </div>
                     <div style={{ display: 'flex', height: 'calc(100% - 28px)' }}>
                       <div style={{ width: 44, borderRight: '1px solid rgba(255,255,255,.06)' }}>
@@ -673,41 +667,6 @@ export default function ChattyLanding() {
         </div>
       </section>
 
-      {/* ═══════════════════════ BUSINESS ═══════════════════════ */}
-      <section style={{ padding: '80px 0', borderTop: '1px solid rgba(255,255,255,.07)', position: 'relative', overflow: 'hidden' }} id="business">
-        <div className="orb" style={{ width: 500, height: 500, background: 'rgba(255,255,255,.025)', top: -100, right: -180 }} />
-        <div className="section-max" style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 72, alignItems: 'center' }}>
-            <div>
-              <div className="section-label">Chatty Business</div>
-              <h2 className="big-h" style={{ marginBottom: 20 }}>Grow your business<br />where your customers are</h2>
-              <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,.55)', marginBottom: 36 }}>
-                Over 200 million businesses use Chatty to connect with customers, answer questions, and drive sales — right where their customers already are.
-              </p>
-              {BUSINESS_FEATURES.map((f, i) => (
-                <div key={i} style={{ display: 'flex', gap: 16, marginBottom: 22 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 12, fontWeight: 700 }}>{f.n}</span>
-                                        <div style={{ fontSize: 13, fontWeight: 500 }}>{f.title}</div>
-                                        <div style={{ fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,.35)' }}>{f.desc}</div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                  <a href="#" className="btn-white" style={{ marginTop: 28, display: 'inline-flex' }}>Start your business →</a>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                                  {['Catalogue','Quick replies','Greeting messages','Verified badge'].map((f, i) => (
-                                    <div key={i} className="card" style={{ padding: '20px 20px', borderRadius: 16, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', display: 'flex', alignItems: 'center', gap: 12 }}>
-                                      <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <svg viewBox="0 0 20 20" fill="white" style={{ width: 18, height: 18 }}><path fillRule="evenodd" d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" clipRule="evenodd" /></svg>
-                                      </div>
-                                      <span style={{ fontSize: 14, fontWeight: 500 }}>{f}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </section>
                     
                           {/* ═══════════════════════ TESTIMONIALS ═══════════════════════ */}
                           <section style={{ padding: '80px 0', borderTop: '1px solid rgba(255,255,255,.07)' }}>
