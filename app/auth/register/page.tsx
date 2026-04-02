@@ -36,18 +36,8 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        let message = "Something went wrong";
-
-        if (data?.error?.message) {
-          try {
-            const parsed = JSON.parse(data.error.message);
-            message = parsed[0]?.message || message;
-          } catch {
-            message = data.error.message;
-          }
-        }
-
-        setFeedback({ type: "error", message });
+        let message = data.error
+       return setFeedback({ type: "error", message });
       } else {
         setFeedback({ type: "success", message: "Account created successfully" });
       }

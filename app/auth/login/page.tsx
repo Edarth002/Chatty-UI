@@ -1,8 +1,11 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 import { useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -35,20 +38,12 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        let message = "Something went wrong";
+        let message = data.error
 
-        if (data?.error?.message) {
-          try {
-            const parsed = JSON.parse(data.error.message);
-            message = parsed[0]?.message || message;
-          } catch {
-            message = data.error.message;
-          }
-        }
-
-        setFeedback({ type: "error", message });
+          return setFeedback({ type: "error", message });
       } else {
         setFeedback({ type: "success", message: "Login successful" });
+        router.push("/chat");
       }
 
       setTimeout(() => setFeedback(null), 3000);
