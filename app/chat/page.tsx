@@ -51,7 +51,7 @@ export default function ChatInterface() {
 
     // simulate API response
     const fakeResponse =
-      'This is a streamed AI response. It renders token by token just like a real LLM would.';
+      '...';
 
     simulateStream(fakeResponse);
   };
@@ -60,10 +60,10 @@ export default function ChatInterface() {
     <div className="h-screen bg-black text-white flex flex-col">
       {/* Header */}
       <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-sm font-semibold">Chat</h1>
+        <h1 className="text-sm font-semibold">Nelson</h1>
         {loading && (
           <span className="text-xs text-white/40 animate-pulse">
-            Thinking...
+            Typing...
           </span>
         )}
       </div>
@@ -130,7 +130,7 @@ export default function ChatInterface() {
         />
         <button
           onClick={handleSend}
-          className="bg-white text-black px-4 py-2 rounded-full text-sm font-medium"
+          className="bg-white text-black px-4 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-white/90 transition"
         >
           Send
         </button>
