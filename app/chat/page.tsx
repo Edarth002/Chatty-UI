@@ -42,7 +42,7 @@ export default function ChatInterface() {
         const data = await res.json();
         setUser(data);
 
-        const ws = new WebSocket(`ws://localhost:4000?token=${data.token}`);
+        const ws = new WebSocket(`ws://localhost:4000?token=${localStorage.getItem('token')}`);
         socketRef.current = ws;
 
         ws.onopen = () => {
