@@ -7,13 +7,36 @@ interface Message {
   content: string;
 }
 
+interface User {
+  username: string;
+  email?: string;
+}
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [streamingText, setStreamingText] = useState('');
+  const [user, setUser] = useState<User | null>(null);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/me');
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setUser(data);
+      } catch (error) {
+        console.log('Failed to fetch user');
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -49,18 +72,38 @@ export default function ChatInterface() {
 
     setInput('');
 
-    // simulate API response
-    const fakeResponse =
-      '...';
+    const fakeResponse = '...';
 
     simulateStream(fakeResponse);
   };
 
+  const getInitial = () => {
+    if (!user?.username) return '?';
+    return user.username.charAt(0).toUpperCase();
+  };
+
   return (
-    <div className="h-screen bg-black text-white flex flex-col">
-      {/* Header */}
+    <div className="h-screen bg-black text-white flex flex-col font-sans">
+      
+
       <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-sm font-semibold">Nelson</h1>
+        
+        <div className="flex items-center gap-3">
+
+          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold">
+            {getInitial()}
+          </div>
+
+          <div className="flex flex-col">
+            <h1 className="text-sm font-semibold">
+              {user?.username || 'Loading...'}
+            </h1>
+            <span className="text-xs text-white/40">
+              Online
+            </span>
+          </div>
+        </div>
+
         {loading && (
           <span className="text-xs text-white/40 animate-pulse">
             Typing...
@@ -68,7 +111,6 @@ export default function ChatInterface() {
         )}
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
         {messages.map((msg, i) => (
           <div
@@ -89,7 +131,6 @@ export default function ChatInterface() {
           </div>
         ))}
 
-        {/* Streaming bubble */}
         {loading && streamingText && (
           <div className="flex justify-start">
             <div className="max-w-[70%] px-4 py-3 rounded-2xl text-sm leading-relaxed bg-white/10 border border-white/10">
@@ -99,7 +140,6 @@ export default function ChatInterface() {
           </div>
         )}
 
-        {/* Typing dots */}
         {loading && !streamingText && (
           <div className="flex justify-start">
             <div className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 flex gap-1">
@@ -119,7 +159,7 @@ export default function ChatInterface() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
+
       <div className="border-t border-white/10 p-4 flex gap-3">
         <input
           value={input}
