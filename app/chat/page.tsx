@@ -3,185 +3,235 @@
 import { useState, useEffect, useRef } from 'react';
 
 interface Message {
-  role: 'user' | 'assistant';
+  from: string;
+  to?: string;
   content: string;
 }
 
 interface User {
+  id: string;
   username: string;
-  email?: string;
+  token?: string;
 }
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [streamingText, setStreamingText] = useState('');
   const [user, setUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
+  const [isConnected, setIsConnected] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const socketRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
+ 
   useEffect(() => {
-    const fetchUser = async () => {
+    const init = async () => {
       try {
-        const res = await fetch('/api/me');
-
+        const res = await fetch('http://localhost:4000/api/me',{
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+        );
         if (!res.ok) return;
 
         const data = await res.json();
         setUser(data);
-      } catch (error) {
-        console.log('Failed to fetch user');
+
+        const ws = new WebSocket(`ws://localhost:4000?token=${data.token}`);
+        socketRef.current = ws;
+
+        ws.onopen = () => {
+          console.log('WS connected');
+          setIsConnected(true);
+        };
+
+        ws.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+
+          setMessages((prev) => [...prev, msg]);
+        };
+
+        ws.onclose = () => {
+          console.log('WS disconnected');
+          setIsConnected(false);
+        };
+      } catch (err) {
+        console.log('Init error', err);
       }
     };
 
-    fetchUser();
+    init();
+
+    return () => {
+      socketRef.current?.close();
+    };
   }, []);
+
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/api/users');
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        console.log('Users fetch error');
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamingText]);
+  }, [messages]);
 
-  const simulateStream = async (text: string) => {
-    setStreamingText('');
-    setLoading(true);
+ 
+  useEffect(() => {
+    setMessages([]);
+  }, [selectedUser]);
 
-    for (let i = 0; i < text.length; i++) {
-      await new Promise((r) => setTimeout(r, 20));
-      setStreamingText((prev) => prev + text[i]);
-    }
 
-    setMessages((prev) => [
-      ...prev,
-      { role: 'assistant', content: text },
-    ]);
-
-    setStreamingText('');
-    setLoading(false);
-  };
-
-  const handleSend = async () => {
+  const handleSend = () => {
     if (!input.trim()) return;
 
-    const userMessage = input;
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      console.log('Socket not ready');
+      return;
+    }
 
+    if (!selectedUser || !user) return;
+
+    setSending(true);
+
+    const msg = {
+      type: 'message',
+      to: selectedUser.id,
+      content: input,
+    };
+
+    socketRef.current.send(JSON.stringify(msg));
     setMessages((prev) => [
       ...prev,
-      { role: 'user', content: userMessage },
+      { from: user.id, to: selectedUser.id, content: input },
     ]);
 
     setInput('');
-
-    const fakeResponse = '...';
-
-    simulateStream(fakeResponse);
+    setSending(false);
   };
 
-  const getInitial = () => {
-    if (!user?.username) return '?';
-    return user.username.charAt(0).toUpperCase();
-  };
+  const getInitial = (name?: string) =>
+    name ? name.charAt(0).toUpperCase() : '?';
+
+  const filteredMessages = messages.filter(
+    (msg) =>
+      selectedUser &&
+      user &&
+      ((msg.from === user.id && msg.to === selectedUser.id) ||
+        (msg.from === selectedUser.id && msg.to === user.id))
+  );
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col font-sans">
-      
+    <div className="h-screen bg-black text-white flex font-sans">
 
-      <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        
-        <div className="flex items-center gap-3">
-
-          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold">
-            {getInitial()}
-          </div>
-
-          <div className="flex flex-col">
-            <h1 className="text-sm font-semibold">
-              {user?.username || 'Loading...'}
-            </h1>
-            <span className="text-xs text-white/40">
-              Online
-            </span>
-          </div>
-        </div>
-
-        {loading && (
-          <span className="text-xs text-white/40 animate-pulse">
-            Typing...
-          </span>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
-        {messages.map((msg, i) => (
+      {/* LEFT: USERS */}
+      <div className="w-1/4 border-r border-white/10 p-4 space-y-2">
+        {users.map((u) => (
           <div
-            key={i}
-            className={`flex ${
-              msg.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
+            key={u.id}
+            onClick={() => setSelectedUser(u)}
+            className="flex items-center gap-3 p-2 cursor-pointer hover:bg-white/10 rounded"
           >
-            <div
-              className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-white text-black'
-                  : 'bg-white/10 border border-white/10'
-              }`}
-            >
-              {msg.content}
+            <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold">
+              {getInitial(u.username)}
             </div>
+            <span>{u.username}</span>
           </div>
         ))}
+      </div>
 
-        {loading && streamingText && (
-          <div className="flex justify-start">
-            <div className="max-w-[70%] px-4 py-3 rounded-2xl text-sm leading-relaxed bg-white/10 border border-white/10">
-              {streamingText}
-              <span className="inline-block w-1 h-4 ml-1 bg-white animate-pulse" />
+     
+      <div className="flex-1 flex flex-col">
+        {selectedUser ? (
+          <>
+    
+            <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold">
+                  {getInitial(selectedUser.username)}
+                </div>
+                <div>
+                  <h1 className="text-sm font-semibold">
+                    {selectedUser.username}
+                  </h1>
+                  <span className="text-xs text-white/40">
+                    {isConnected ? 'Online' : 'Connecting...'}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
 
-        {loading && !streamingText && (
-          <div className="flex justify-start">
-            <div className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 flex gap-1">
-              {[0, 0.2, 0.4].map((d, i) => (
-                <span
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+              {filteredMessages.map((msg, i) => (
+                <div
                   key={i}
-                  className="w-2 h-2 rounded-full bg-white/40"
-                  style={{
-                    animation: `bounce 1.2s infinite ${d}s`,
-                  }}
-                />
+                  className={`flex ${
+                    msg.from === user?.id
+                      ? 'justify-end'
+                      : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm ${
+                      msg.from === user?.id
+                        ? 'bg-white text-black'
+                        : 'bg-white/10'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
               ))}
+              <div ref={bottomRef} />
             </div>
+
+            <div className="border-t border-white/10 p-4 flex gap-3">
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type message..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm outline-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+              />
+
+              <button
+                onClick={handleSend}
+                disabled={!isConnected || sending}
+                className="bg-white text-black px-4 py-2 rounded-full text-sm disabled:opacity-40"
+              >
+                {sending ? 'Sending...' : 'Send'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full text-white/40">
+            Select a user to start chatting
           </div>
         )}
-
-        <div ref={bottomRef} />
       </div>
-
-
-      <div className="border-t border-white/10 p-4 flex gap-3">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm outline-none"
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-        />
-        <button
-          onClick={handleSend}
-          className="bg-white text-black px-4 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-white/90 transition"
-        >
-          Send
-        </button>
-      </div>
-
-      <style>{`
-        @keyframes bounce {
-          0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-          40% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 }

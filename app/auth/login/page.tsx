@@ -41,11 +41,14 @@ export default function LoginPage() {
         let message = data.error
 
           return setFeedback({ type: "error", message });
-      } else {
+      } 
+
+       if (data.token) {
+      localStorage.setItem("token", data.token);
+    }
         setFeedback({ type: "success", message: "Login successful" });
         router.push("/chat");
-      }
-
+      
       setTimeout(() => setFeedback(null), 3000);
     } catch (err) {
       setFeedback({ type: "error", message: "Network error" });
